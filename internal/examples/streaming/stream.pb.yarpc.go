@@ -45,7 +45,7 @@ type HelloYARPCClient interface {
 // HelloServiceHelloOutStreamYARPCClient sends HelloRequests and receives the single HelloResponse when sending is done.
 type HelloServiceHelloOutStreamYARPCClient interface {
 	Context() context.Context
-	Request() *transport.Request
+	RequestMeta() *transport.RequestMeta
 	Send(*HelloRequest) error
 	CloseAndRecv() (*HelloResponse, error)
 }
@@ -53,14 +53,14 @@ type HelloServiceHelloOutStreamYARPCClient interface {
 // HelloServiceHelloInStreamYARPCClient receives HelloResponses, returning io.EOF when the stream is complete.
 type HelloServiceHelloInStreamYARPCClient interface {
 	Context() context.Context
-	Request() *transport.Request
+	RequestMeta() *transport.RequestMeta
 	Recv() (*HelloResponse, error)
 }
 
 // HelloServiceHelloThereYARPCClient sends HelloRequests and receives HelloResponses, returning io.EOF when the stream is complete.
 type HelloServiceHelloThereYARPCClient interface {
 	Context() context.Context
-	Request() *transport.Request
+	RequestMeta() *transport.RequestMeta
 	Send(*HelloRequest) error
 	Recv() (*HelloResponse, error)
 	CloseSend() error
@@ -68,7 +68,7 @@ type HelloServiceHelloThereYARPCClient interface {
 
 // NewHelloYARPCClient builds a new YARPC client for the Hello service.
 func NewHelloYARPCClient(clientConfig transport.ClientConfig, options ...protobuf.ClientOption) HelloYARPCClient {
-	return &_HelloYARPCCaller{protobuf.NewClient(
+	return &_HelloYARPCCaller{protobuf.NewStreamClient(
 		protobuf.ClientParams{
 			ServiceName:  "uber.yarpc.internal.examples.streaming.Hello",
 			ClientConfig: clientConfig,
@@ -88,21 +88,21 @@ type HelloYARPCServer interface {
 // HelloServiceHelloOutStreamYARPCServer receives HelloRequests.
 type HelloServiceHelloOutStreamYARPCServer interface {
 	Context() context.Context
-	Request() *transport.Request
+	RequestMeta() *transport.RequestMeta
 	Recv() (*HelloRequest, error)
 }
 
 // HelloServiceHelloInStreamYARPCServer sends HelloResponses.
 type HelloServiceHelloInStreamYARPCServer interface {
 	Context() context.Context
-	Request() *transport.Request
+	RequestMeta() *transport.Request
 	Send(*HelloResponse) error
 }
 
 // HelloServiceHelloThereYARPCServer receives HelloRequests and sends HelloResponse.
 type HelloServiceHelloThereYARPCServer interface {
 	Context() context.Context
-	Request() *transport.Request
+	RequestMeta() *transport.RequestMeta
 	Recv() (*HelloRequest, error)
 	Send(*HelloResponse) error
 }
@@ -158,11 +158,11 @@ func BuildHelloYARPCProcedures(server HelloYARPCServer) []transport.Procedure {
 }
 
 type _HelloYARPCCaller struct {
-	client protobuf.Client
+	streamClient protobuf.StreamClient
 }
 
 func (c *_HelloYARPCCaller) HelloUnary(ctx context.Context, request *HelloRequest, options ...yarpc.CallOption) (*HelloResponse, error) {
-	responseMessage, err := c.client.Call(ctx, "HelloUnary", request, newHelloServiceHelloUnaryYARPCResponse, options...)
+	responseMessage, err := c.streamClient.Call(ctx, "HelloUnary", request, newHelloServiceHelloUnaryYARPCResponse, options...)
 	if responseMessage == nil {
 		return nil, err
 	}
@@ -174,7 +174,7 @@ func (c *_HelloYARPCCaller) HelloUnary(ctx context.Context, request *HelloReques
 }
 
 func (c *_HelloYARPCCaller) HelloOutStream(ctx context.Context, options ...yarpc.CallOption) (HelloServiceHelloOutStreamYARPCClient, error) {
-	stream, err := c.client.CallStream(ctx, "HelloOutStream", options...)
+	stream, err := c.streamClient.CallStream(ctx, "HelloOutStream", options...)
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +182,7 @@ func (c *_HelloYARPCCaller) HelloOutStream(ctx context.Context, options ...yarpc
 }
 
 func (c *_HelloYARPCCaller) HelloInStream(ctx context.Context, request *HelloRequest, options ...yarpc.CallOption) (HelloServiceHelloInStreamYARPCClient, error) {
-	stream, err := c.client.CallStream(ctx, "HelloInStream", options...)
+	stream, err := c.streamClient.CallStream(ctx, "HelloInStream", options...)
 	if err != nil {
 		return nil, err
 	}
@@ -193,14 +193,14 @@ func (c *_HelloYARPCCaller) HelloInStream(ctx context.Context, request *HelloReq
 	if err != nil {
 		return nil, err
 	}
-	if err := stream.SendMsg(reader); err != nil {
+	if err := stream.SendMsg(&transport.StreamMessage{ReadCloser: ioutil.NopCloser(reader)}); err != nil {
 		return nil, err
 	}
 	return &_HelloServiceHelloInStreamYARPCClient{stream: stream}, nil
 }
 
 func (c *_HelloYARPCCaller) HelloThere(ctx context.Context, options ...yarpc.CallOption) (HelloServiceHelloThereYARPCClient, error) {
-	stream, err := c.client.CallStream(ctx, "HelloThere", options...)
+	stream, err := c.streamClient.CallStream(ctx, "HelloThere", options...)
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +227,7 @@ func (h *_HelloYARPCHandler) HelloUnary(ctx context.Context, requestMessage prot
 	return response, err
 }
 
-func (h *_HelloYARPCHandler) HelloOutStream(serverStream protobuf.ServerStream) error {
+func (h *_HelloYARPCHandler) HelloOutStream(serverStream transport.ServerStream) error {
 	response, err := h.server.HelloOutStream(&_HelloServiceHelloOutStreamYARPCServer{serverStream: serverStream})
 	if err != nil {
 		return err
@@ -239,10 +239,10 @@ func (h *_HelloYARPCHandler) HelloOutStream(serverStream protobuf.ServerStream) 
 	if err != nil {
 		return err
 	}
-	return serverStream.SendMsg(reader)
+	return serverStream.SendMsg(&transport.StreamMessage{ReadCloser: ioutil.NopCloser(reader)})
 }
 
-func (h *_HelloYARPCHandler) HelloInStream(serverStream protobuf.ServerStream) error {
+func (h *_HelloYARPCHandler) HelloInStream(serverStream transport.ServerStream) error {
 	src, err := serverStream.RecvMsg()
 	if err != nil {
 		return err
@@ -258,12 +258,12 @@ func (h *_HelloYARPCHandler) HelloInStream(serverStream protobuf.ServerStream) e
 	return h.server.HelloInStream(request, &_HelloServiceHelloInStreamYARPCServer{serverStream: serverStream})
 }
 
-func (h *_HelloYARPCHandler) HelloThere(serverStream protobuf.ServerStream) error {
+func (h *_HelloYARPCHandler) HelloThere(serverStream transport.ServerStream) error {
 	return h.server.HelloThere(&_HelloServiceHelloThereYARPCServer{serverStream: serverStream})
 }
 
 type _HelloServiceHelloOutStreamYARPCClient struct {
-	stream protobuf.ClientStream
+	stream transport.ClientStream
 }
 
 func (c *_HelloServiceHelloOutStreamYARPCClient) Context() context.Context {
@@ -282,7 +282,7 @@ func (c *_HelloServiceHelloOutStreamYARPCClient) Send(request *HelloRequest) err
 	if err != nil {
 		return err
 	}
-	return c.stream.SendMsg(reader)
+	return c.stream.SendMsg(&transport.StreamMessage{ReadCloser: ioutil.NopCloser(reader)})
 }
 
 func (c *_HelloServiceHelloOutStreamYARPCClient) CloseAndRecv() (*HelloResponse, error) {
@@ -306,7 +306,7 @@ func (c *_HelloServiceHelloOutStreamYARPCClient) CloseAndRecv() (*HelloResponse,
 }
 
 type _HelloServiceHelloInStreamYARPCClient struct {
-	stream protobuf.ClientStream
+	stream transport.ClientStream
 }
 
 func (c *_HelloServiceHelloInStreamYARPCClient) Context() context.Context {
@@ -334,7 +334,7 @@ func (c *_HelloServiceHelloInStreamYARPCClient) Recv() (*HelloResponse, error) {
 }
 
 type _HelloServiceHelloThereYARPCClient struct {
-	stream protobuf.ClientStream
+	stream transport.ClientStream
 }
 
 func (c *_HelloServiceHelloThereYARPCClient) Context() context.Context {
@@ -353,7 +353,7 @@ func (c *_HelloServiceHelloThereYARPCClient) Send(request *HelloRequest) error {
 	if err != nil {
 		return err
 	}
-	return c.stream.SendMsg(reader)
+	return c.stream.SendMsg(&transport.StreamMessage{ReadCloser: ioutil.NopCloser(reader)})
 }
 
 func (c *_HelloServiceHelloThereYARPCClient) Recv() (*HelloResponse, error) {
@@ -424,11 +424,11 @@ func (s *_HelloServiceHelloInStreamYARPCServer) Send(response *HelloResponse) er
 	if err != nil {
 		return err
 	}
-	return s.serverStream.SendMsg(reader)
+	return s.serverStream.SendMsg(&transport.StreamMessage{ReadCloser: ioutil.NopCloser(reader)})
 }
 
 type _HelloServiceHelloThereYARPCServer struct {
-	serverStream protobuf.ServerStream
+	serverStream transport.ServerStream
 }
 
 func (s *_HelloServiceHelloThereYARPCServer) Context() context.Context {
@@ -463,7 +463,7 @@ func (s *_HelloServiceHelloThereYARPCServer) Send(response *HelloResponse) error
 	if err != nil {
 		return err
 	}
-	return s.serverStream.SendMsg(reader)
+	return s.serverStream.SendMsg(&transport.StreamMessage{ReadCloser: ioutil.NopCloser(reader)})
 }
 
 func newHelloServiceHelloUnaryYARPCRequest() proto.Message {

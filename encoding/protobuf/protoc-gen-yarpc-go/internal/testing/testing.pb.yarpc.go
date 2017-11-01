@@ -43,7 +43,7 @@ type KeyValueYARPCClient interface {
 
 // NewKeyValueYARPCClient builds a new YARPC client for the KeyValue service.
 func NewKeyValueYARPCClient(clientConfig transport.ClientConfig, options ...protobuf.ClientOption) KeyValueYARPCClient {
-	return &_KeyValueYARPCCaller{protobuf.NewClient(
+	return &_KeyValueYARPCCaller{protobuf.NewStreamClient(
 		protobuf.ClientParams{
 			ServiceName:  "uber.yarpc.encoding.protobuf.protocgenyarpcgo.internal.testing.KeyValue",
 			ClientConfig: clientConfig,
@@ -91,11 +91,11 @@ func BuildKeyValueYARPCProcedures(server KeyValueYARPCServer) []transport.Proced
 }
 
 type _KeyValueYARPCCaller struct {
-	client protobuf.Client
+	streamClient protobuf.StreamClient
 }
 
 func (c *_KeyValueYARPCCaller) GetValue(ctx context.Context, request *GetValueRequest, options ...yarpc.CallOption) (*GetValueResponse, error) {
-	responseMessage, err := c.client.Call(ctx, "GetValue", request, newKeyValueServiceGetValueYARPCResponse, options...)
+	responseMessage, err := c.streamClient.Call(ctx, "GetValue", request, newKeyValueServiceGetValueYARPCResponse, options...)
 	if responseMessage == nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func (c *_KeyValueYARPCCaller) GetValue(ctx context.Context, request *GetValueRe
 }
 
 func (c *_KeyValueYARPCCaller) SetValue(ctx context.Context, request *SetValueRequest, options ...yarpc.CallOption) (*SetValueResponse, error) {
-	responseMessage, err := c.client.Call(ctx, "SetValue", request, newKeyValueServiceSetValueYARPCResponse, options...)
+	responseMessage, err := c.streamClient.Call(ctx, "SetValue", request, newKeyValueServiceSetValueYARPCResponse, options...)
 	if responseMessage == nil {
 		return nil, err
 	}
@@ -184,7 +184,7 @@ type SinkYARPCClient interface {
 
 // NewSinkYARPCClient builds a new YARPC client for the Sink service.
 func NewSinkYARPCClient(clientConfig transport.ClientConfig, options ...protobuf.ClientOption) SinkYARPCClient {
-	return &_SinkYARPCCaller{protobuf.NewClient(
+	return &_SinkYARPCCaller{protobuf.NewStreamClient(
 		protobuf.ClientParams{
 			ServiceName:  "uber.yarpc.encoding.protobuf.protocgenyarpcgo.internal.testing.Sink",
 			ClientConfig: clientConfig,
@@ -222,11 +222,11 @@ func BuildSinkYARPCProcedures(server SinkYARPCServer) []transport.Procedure {
 }
 
 type _SinkYARPCCaller struct {
-	client protobuf.Client
+	streamClient protobuf.StreamClient
 }
 
 func (c *_SinkYARPCCaller) Fire(ctx context.Context, request *FireRequest, options ...yarpc.CallOption) (yarpc.Ack, error) {
-	return c.client.CallOneway(ctx, "Fire", request, options...)
+	return c.streamClient.CallOneway(ctx, "Fire", request, options...)
 }
 
 type _SinkYARPCHandler struct {
@@ -271,7 +271,7 @@ type FooYARPCClient interface {
 // FooServiceHelloOneYARPCClient sends HelloRequests and receives the single HelloResponse when sending is done.
 type FooServiceHelloOneYARPCClient interface {
 	Context() context.Context
-	Request() *transport.Request
+	RequestMeta() *transport.RequestMeta
 	Send(*HelloRequest) error
 	CloseAndRecv() (*HelloResponse, error)
 }
@@ -279,14 +279,14 @@ type FooServiceHelloOneYARPCClient interface {
 // FooServiceHelloTwoYARPCClient receives HelloResponses, returning io.EOF when the stream is complete.
 type FooServiceHelloTwoYARPCClient interface {
 	Context() context.Context
-	Request() *transport.Request
+	RequestMeta() *transport.RequestMeta
 	Recv() (*HelloResponse, error)
 }
 
 // FooServiceHelloThreeYARPCClient sends HelloRequests and receives HelloResponses, returning io.EOF when the stream is complete.
 type FooServiceHelloThreeYARPCClient interface {
 	Context() context.Context
-	Request() *transport.Request
+	RequestMeta() *transport.RequestMeta
 	Send(*HelloRequest) error
 	Recv() (*HelloResponse, error)
 	CloseSend() error
@@ -294,7 +294,7 @@ type FooServiceHelloThreeYARPCClient interface {
 
 // NewFooYARPCClient builds a new YARPC client for the Foo service.
 func NewFooYARPCClient(clientConfig transport.ClientConfig, options ...protobuf.ClientOption) FooYARPCClient {
-	return &_FooYARPCCaller{protobuf.NewClient(
+	return &_FooYARPCCaller{protobuf.NewStreamClient(
 		protobuf.ClientParams{
 			ServiceName:  "uber.yarpc.encoding.protobuf.protocgenyarpcgo.internal.testing.Foo",
 			ClientConfig: clientConfig,
@@ -316,21 +316,21 @@ type FooYARPCServer interface {
 // FooServiceHelloOneYARPCServer receives HelloRequests.
 type FooServiceHelloOneYARPCServer interface {
 	Context() context.Context
-	Request() *transport.Request
+	RequestMeta() *transport.RequestMeta
 	Recv() (*HelloRequest, error)
 }
 
 // FooServiceHelloTwoYARPCServer sends HelloResponses.
 type FooServiceHelloTwoYARPCServer interface {
 	Context() context.Context
-	Request() *transport.Request
+	RequestMeta() *transport.Request
 	Send(*HelloResponse) error
 }
 
 // FooServiceHelloThreeYARPCServer receives HelloRequests and sends HelloResponse.
 type FooServiceHelloThreeYARPCServer interface {
 	Context() context.Context
-	Request() *transport.Request
+	RequestMeta() *transport.RequestMeta
 	Recv() (*HelloRequest, error)
 	Send(*HelloResponse) error
 }
@@ -405,11 +405,11 @@ func BuildFooYARPCProcedures(server FooYARPCServer) []transport.Procedure {
 }
 
 type _FooYARPCCaller struct {
-	client protobuf.Client
+	streamClient protobuf.StreamClient
 }
 
 func (c *_FooYARPCCaller) GetValue(ctx context.Context, request *GetValueRequest, options ...yarpc.CallOption) (*GetValueResponse, error) {
-	responseMessage, err := c.client.Call(ctx, "GetValue", request, newFooServiceGetValueYARPCResponse, options...)
+	responseMessage, err := c.streamClient.Call(ctx, "GetValue", request, newFooServiceGetValueYARPCResponse, options...)
 	if responseMessage == nil {
 		return nil, err
 	}
@@ -421,7 +421,7 @@ func (c *_FooYARPCCaller) GetValue(ctx context.Context, request *GetValueRequest
 }
 
 func (c *_FooYARPCCaller) SetValue(ctx context.Context, request *SetValueRequest, options ...yarpc.CallOption) (*SetValueResponse, error) {
-	responseMessage, err := c.client.Call(ctx, "SetValue", request, newFooServiceSetValueYARPCResponse, options...)
+	responseMessage, err := c.streamClient.Call(ctx, "SetValue", request, newFooServiceSetValueYARPCResponse, options...)
 	if responseMessage == nil {
 		return nil, err
 	}
@@ -433,11 +433,11 @@ func (c *_FooYARPCCaller) SetValue(ctx context.Context, request *SetValueRequest
 }
 
 func (c *_FooYARPCCaller) Fire(ctx context.Context, request *FireRequest, options ...yarpc.CallOption) (yarpc.Ack, error) {
-	return c.client.CallOneway(ctx, "Fire", request, options...)
+	return c.streamClient.CallOneway(ctx, "Fire", request, options...)
 }
 
 func (c *_FooYARPCCaller) HelloOne(ctx context.Context, options ...yarpc.CallOption) (FooServiceHelloOneYARPCClient, error) {
-	stream, err := c.client.CallStream(ctx, "HelloOne", options...)
+	stream, err := c.streamClient.CallStream(ctx, "HelloOne", options...)
 	if err != nil {
 		return nil, err
 	}
@@ -445,7 +445,7 @@ func (c *_FooYARPCCaller) HelloOne(ctx context.Context, options ...yarpc.CallOpt
 }
 
 func (c *_FooYARPCCaller) HelloTwo(ctx context.Context, request *HelloRequest, options ...yarpc.CallOption) (FooServiceHelloTwoYARPCClient, error) {
-	stream, err := c.client.CallStream(ctx, "HelloTwo", options...)
+	stream, err := c.streamClient.CallStream(ctx, "HelloTwo", options...)
 	if err != nil {
 		return nil, err
 	}
@@ -456,14 +456,14 @@ func (c *_FooYARPCCaller) HelloTwo(ctx context.Context, request *HelloRequest, o
 	if err != nil {
 		return nil, err
 	}
-	if err := stream.SendMsg(reader); err != nil {
+	if err := stream.SendMsg(&transport.StreamMessage{ReadCloser: ioutil.NopCloser(reader)}); err != nil {
 		return nil, err
 	}
 	return &_FooServiceHelloTwoYARPCClient{stream: stream}, nil
 }
 
 func (c *_FooYARPCCaller) HelloThree(ctx context.Context, options ...yarpc.CallOption) (FooServiceHelloThreeYARPCClient, error) {
-	stream, err := c.client.CallStream(ctx, "HelloThree", options...)
+	stream, err := c.streamClient.CallStream(ctx, "HelloThree", options...)
 	if err != nil {
 		return nil, err
 	}
@@ -518,7 +518,7 @@ func (h *_FooYARPCHandler) Fire(ctx context.Context, requestMessage proto.Messag
 	return h.server.Fire(ctx, request)
 }
 
-func (h *_FooYARPCHandler) HelloOne(serverStream protobuf.ServerStream) error {
+func (h *_FooYARPCHandler) HelloOne(serverStream transport.ServerStream) error {
 	response, err := h.server.HelloOne(&_FooServiceHelloOneYARPCServer{serverStream: serverStream})
 	if err != nil {
 		return err
@@ -530,10 +530,10 @@ func (h *_FooYARPCHandler) HelloOne(serverStream protobuf.ServerStream) error {
 	if err != nil {
 		return err
 	}
-	return serverStream.SendMsg(reader)
+	return serverStream.SendMsg(&transport.StreamMessage{ReadCloser: ioutil.NopCloser(reader)})
 }
 
-func (h *_FooYARPCHandler) HelloTwo(serverStream protobuf.ServerStream) error {
+func (h *_FooYARPCHandler) HelloTwo(serverStream transport.ServerStream) error {
 	src, err := serverStream.RecvMsg()
 	if err != nil {
 		return err
@@ -549,12 +549,12 @@ func (h *_FooYARPCHandler) HelloTwo(serverStream protobuf.ServerStream) error {
 	return h.server.HelloTwo(request, &_FooServiceHelloTwoYARPCServer{serverStream: serverStream})
 }
 
-func (h *_FooYARPCHandler) HelloThree(serverStream protobuf.ServerStream) error {
+func (h *_FooYARPCHandler) HelloThree(serverStream transport.ServerStream) error {
 	return h.server.HelloThree(&_FooServiceHelloThreeYARPCServer{serverStream: serverStream})
 }
 
 type _FooServiceHelloOneYARPCClient struct {
-	stream protobuf.ClientStream
+	stream transport.ClientStream
 }
 
 func (c *_FooServiceHelloOneYARPCClient) Context() context.Context {
@@ -573,7 +573,7 @@ func (c *_FooServiceHelloOneYARPCClient) Send(request *HelloRequest) error {
 	if err != nil {
 		return err
 	}
-	return c.stream.SendMsg(reader)
+	return c.stream.SendMsg(&transport.StreamMessage{ReadCloser: ioutil.NopCloser(reader)})
 }
 
 func (c *_FooServiceHelloOneYARPCClient) CloseAndRecv() (*HelloResponse, error) {
@@ -597,7 +597,7 @@ func (c *_FooServiceHelloOneYARPCClient) CloseAndRecv() (*HelloResponse, error) 
 }
 
 type _FooServiceHelloTwoYARPCClient struct {
-	stream protobuf.ClientStream
+	stream transport.ClientStream
 }
 
 func (c *_FooServiceHelloTwoYARPCClient) Context() context.Context {
@@ -625,7 +625,7 @@ func (c *_FooServiceHelloTwoYARPCClient) Recv() (*HelloResponse, error) {
 }
 
 type _FooServiceHelloThreeYARPCClient struct {
-	stream protobuf.ClientStream
+	stream transport.ClientStream
 }
 
 func (c *_FooServiceHelloThreeYARPCClient) Context() context.Context {
@@ -644,7 +644,7 @@ func (c *_FooServiceHelloThreeYARPCClient) Send(request *HelloRequest) error {
 	if err != nil {
 		return err
 	}
-	return c.stream.SendMsg(reader)
+	return c.stream.SendMsg(&transport.StreamMessage{ReadCloser: ioutil.NopCloser(reader)})
 }
 
 func (c *_FooServiceHelloThreeYARPCClient) Recv() (*HelloResponse, error) {
@@ -715,11 +715,11 @@ func (s *_FooServiceHelloTwoYARPCServer) Send(response *HelloResponse) error {
 	if err != nil {
 		return err
 	}
-	return s.serverStream.SendMsg(reader)
+	return s.serverStream.SendMsg(&transport.StreamMessage{ReadCloser: ioutil.NopCloser(reader)})
 }
 
 type _FooServiceHelloThreeYARPCServer struct {
-	serverStream protobuf.ServerStream
+	serverStream transport.ServerStream
 }
 
 func (s *_FooServiceHelloThreeYARPCServer) Context() context.Context {
@@ -754,7 +754,7 @@ func (s *_FooServiceHelloThreeYARPCServer) Send(response *HelloResponse) error {
 	if err != nil {
 		return err
 	}
-	return s.serverStream.SendMsg(reader)
+	return s.serverStream.SendMsg(&transport.StreamMessage{ReadCloser: ioutil.NopCloser(reader)})
 }
 
 func newFooServiceGetValueYARPCRequest() proto.Message {

@@ -42,7 +42,7 @@ type EchoYARPCClient interface {
 
 // NewEchoYARPCClient builds a new YARPC client for the Echo service.
 func NewEchoYARPCClient(clientConfig transport.ClientConfig, options ...protobuf.ClientOption) EchoYARPCClient {
-	return &_EchoYARPCCaller{protobuf.NewClient(
+	return &_EchoYARPCCaller{protobuf.NewStreamClient(
 		protobuf.ClientParams{
 			ServiceName:  "uber.yarpc.internal.crossdock.Echo",
 			ClientConfig: clientConfig,
@@ -80,11 +80,11 @@ func BuildEchoYARPCProcedures(server EchoYARPCServer) []transport.Procedure {
 }
 
 type _EchoYARPCCaller struct {
-	client protobuf.Client
+	streamClient protobuf.StreamClient
 }
 
 func (c *_EchoYARPCCaller) Echo(ctx context.Context, request *Ping, options ...yarpc.CallOption) (*Pong, error) {
-	responseMessage, err := c.client.Call(ctx, "Echo", request, newEchoServiceEchoYARPCResponse, options...)
+	responseMessage, err := c.streamClient.Call(ctx, "Echo", request, newEchoServiceEchoYARPCResponse, options...)
 	if responseMessage == nil {
 		return nil, err
 	}
@@ -135,7 +135,7 @@ type OnewayYARPCClient interface {
 
 // NewOnewayYARPCClient builds a new YARPC client for the Oneway service.
 func NewOnewayYARPCClient(clientConfig transport.ClientConfig, options ...protobuf.ClientOption) OnewayYARPCClient {
-	return &_OnewayYARPCCaller{protobuf.NewClient(
+	return &_OnewayYARPCCaller{protobuf.NewStreamClient(
 		protobuf.ClientParams{
 			ServiceName:  "uber.yarpc.internal.crossdock.Oneway",
 			ClientConfig: clientConfig,
@@ -173,11 +173,11 @@ func BuildOnewayYARPCProcedures(server OnewayYARPCServer) []transport.Procedure 
 }
 
 type _OnewayYARPCCaller struct {
-	client protobuf.Client
+	streamClient protobuf.StreamClient
 }
 
 func (c *_OnewayYARPCCaller) Echo(ctx context.Context, request *Token, options ...yarpc.CallOption) (yarpc.Ack, error) {
-	return c.client.CallOneway(ctx, "Echo", request, options...)
+	return c.streamClient.CallOneway(ctx, "Echo", request, options...)
 }
 
 type _OnewayYARPCHandler struct {
