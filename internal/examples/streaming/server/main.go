@@ -23,15 +23,12 @@ package main
 import (
 	"fmt"
 	"log"
-	"net"
 
-	"go.uber.org/yarpc"
-	"go.uber.org/yarpc/api/transport"
 	//"go.uber.org/yarpc/encoding/raw"
 	"context"
 	"errors"
+
 	"go.uber.org/yarpc/internal/examples/streaming"
-	"go.uber.org/yarpc/transport/x/grpc"
 )
 
 //
@@ -108,27 +105,27 @@ func main() {
 }
 
 func do() error {
-	var inbound transport.Inbound
-	listener, err := net.Listen("tcp", "127.0.0.1:24038")
-	if err != nil {
-		return err
-	}
-	inbound = grpc.NewTransport().NewInbound(listener)
+	//var inbound transport.Inbound
+	//listener, err := net.Listen("tcp", "127.0.0.1:24038")
+	//if err != nil {
+	//return err
+	//}
+	//inbound = grpc.NewTransport().NewInbound(listener)
 
-	dispatcher := yarpc.NewDispatcher(yarpc.Config{
-		Name:     "keyvalue",
-		Inbounds: yarpc.Inbounds{inbound},
-	})
+	//dispatcher := yarpc.NewDispatcher(yarpc.Config{
+	//Name:     "keyvalue",
+	//Inbounds: yarpc.Inbounds{inbound},
+	//})
 
-	handler := &handler{}
+	//handler := &handler{}
 
-	dispatcher.Register(streaming.BuildHelloYARPCProcedures(handler))
+	//dispatcher.Register(streaming.BuildHelloYARPCProcedures(handler))
 
-	fmt.Println("Starting Dispatcher")
-	if err := dispatcher.Start(); err != nil {
-		return err
-	}
-	fmt.Println("Started Dispatcher")
+	//fmt.Println("Starting Dispatcher")
+	//if err := dispatcher.Start(); err != nil {
+	//return err
+	//}
+	//fmt.Println("Started Dispatcher")
 
 	select {}
 }

@@ -200,7 +200,7 @@ func NewOnewayHandler(params OnewayHandlerParams) transport.OnewayHandler {
 
 // StreamHandlerParams contains the parameters for creating a new StreamHandler.
 type StreamHandlerParams struct {
-	Handle func(transport.ServerStream) error
+	Handle func(transport.ServerStream) (*transport.ResponseMeta, error)
 }
 
 // NewStreamHandler returns a new StreamHandler.
