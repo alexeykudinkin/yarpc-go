@@ -240,7 +240,7 @@ func (c *_{{$service.GetName}}YARPCCaller) {{$method.GetName}}(ctx context.Conte
 	if err != nil {
 		return nil, err
 	}
-	if err := stream.SendMsg(reader); err != nil {
+	if err := stream.SendMsg(&transport.StreamMessage{ReadCloser: ioutil.NopCloser(reader)}); err != nil {
 		return nil, err
 	}
 	return &_{{$service.GetName}}Service{{$method.GetName}}YARPCClient{stream: stream}, nil
@@ -303,7 +303,7 @@ func (h *_{{$service.GetName}}YARPCHandler) {{$method.GetName}}(serverStream tra
 	if err != nil {
 		return err
 	}
-	return serverStream.SendMsg(reader)
+	return serverStream.SendMsg(&transport.StreamMessage{ReadCloser: ioutil.NopCloser(reader)})
 }
 {{end}}
 {{range $method := serverStreamingMethods $service}}
@@ -350,7 +350,7 @@ func (c *_{{$service.GetName}}Service{{$method.GetName}}YARPCClient) Send(reques
 	if err != nil {
 		return err
 	}
-	return c.stream.SendMsg(reader)
+	return c.stream.SendMsg(&transport.StreamMessage{ReadCloser: ioutil.NopCloser(reader)})
 }
 
 func (c *_{{$service.GetName}}Service{{$method.GetName}}YARPCClient) CloseAndRecv() (*{{$method.ResponseType.GoType $packagePath}}, error) {
@@ -425,7 +425,7 @@ func (c *_{{$service.GetName}}Service{{$method.GetName}}YARPCClient) Send(reques
 	if err != nil {
 		return err
 	}
-	return c.stream.SendMsg(reader)
+	return c.stream.SendMsg(&transport.StreamMessage{ReadCloser: ioutil.NopCloser(reader)})
 }
 
 func (c *_{{$service.GetName}}Service{{$method.GetName}}YARPCClient) Recv() (*{{$method.ResponseType.GoType $packagePath}}, error) {
@@ -500,7 +500,7 @@ func (s *_{{$service.GetName}}Service{{$method.GetName}}YARPCServer) Send(respon
 	if err != nil {
 		return err
 	}
-	return s.serverStream.SendMsg(reader)
+	return s.serverStream.SendMsg(&transport.StreamMessage{ReadCloser: ioutil.NopCloser(reader)})
 }
 {{end}}
 
@@ -541,7 +541,7 @@ func (s *_{{$service.GetName}}Service{{$method.GetName}}YARPCServer) Send(respon
 	if err != nil {
 		return err
 	}
-	return s.serverStream.SendMsg(reader)
+	return s.serverStream.SendMsg(&transport.StreamMessage{ReadCloser: ioutil.NopCloser(reader)})
 }
 {{end}}
 
