@@ -36,6 +36,8 @@ import (
 	"go.uber.org/yarpc/yarpcproto"
 )
 
+var _ = ioutil.NopCloser
+
 // EchoYARPCClient is the YARPC client-side interface for the Echo service.
 type EchoYARPCClient interface {
 	Echo(context.Context, *Ping, ...yarpc.CallOption) (*Pong, error)

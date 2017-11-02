@@ -35,6 +35,8 @@ import (
 	"go.uber.org/yarpc/encoding/protobuf"
 )
 
+var _ = ioutil.NopCloser
+
 // HelloYARPCClient is the YARPC client-side interface for the Hello service.
 type HelloYARPCClient interface {
 	HelloUnary(context.Context, *HelloRequest, ...yarpc.CallOption) (*HelloResponse, error)

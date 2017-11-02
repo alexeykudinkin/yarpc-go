@@ -36,6 +36,8 @@ import (
 	"go.uber.org/yarpc/yarpcproto"
 )
 
+var _ = ioutil.NopCloser
+
 // KeyValueYARPCClient is the YARPC client-side interface for the KeyValue service.
 type KeyValueYARPCClient interface {
 	GetValue(context.Context, *GetValueRequest, ...yarpc.CallOption) (*GetValueResponse, error)
