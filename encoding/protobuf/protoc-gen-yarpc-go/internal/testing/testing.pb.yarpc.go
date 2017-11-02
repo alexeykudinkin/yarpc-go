@@ -572,6 +572,10 @@ func (c *_FooServiceHelloOneYARPCClient) RequestMeta() *transport.RequestMeta {
 	return c.stream.RequestMeta()
 }
 
+func (c *_FooServiceHelloOneYARPCClient) ResponseMeta() *transport.ResponseMeta {
+	return c.stream.ResponseMeta()
+}
+
 func (c *_FooServiceHelloOneYARPCClient) Send(request *HelloRequest) error {
 	reader, closer, err := protobuf.ToReader(request, c.stream.RequestMeta().Encoding)
 	if closer != nil {
@@ -614,6 +618,10 @@ func (c *_FooServiceHelloTwoYARPCClient) RequestMeta() *transport.RequestMeta {
 	return c.stream.RequestMeta()
 }
 
+func (c *_FooServiceHelloTwoYARPCClient) ResponseMeta() *transport.ResponseMeta {
+	return c.stream.ResponseMeta()
+}
+
 func (c *_FooServiceHelloTwoYARPCClient) Recv() (*HelloResponse, error) {
 	src, err := c.stream.RecvMsg()
 	if err != nil {
@@ -640,6 +648,10 @@ func (c *_FooServiceHelloThreeYARPCClient) Context() context.Context {
 
 func (c *_FooServiceHelloThreeYARPCClient) RequestMeta() *transport.RequestMeta {
 	return c.stream.RequestMeta()
+}
+
+func (c *_FooServiceHelloThreeYARPCClient) ResponseMeta() *transport.ResponseMeta {
+	return c.stream.ResponseMeta()
 }
 
 func (c *_FooServiceHelloThreeYARPCClient) Send(request *HelloRequest) error {
@@ -685,6 +697,10 @@ func (s *_FooServiceHelloOneYARPCServer) RequestMeta() *transport.RequestMeta {
 	return s.serverStream.RequestMeta()
 }
 
+func (s *_FooServiceHelloOneYARPCServer) SetResponseMeta(responseMeta *transport.ResponseMeta) {
+	s.serverStream.SetResponseMeta(responseMeta)
+}
+
 func (s *_FooServiceHelloOneYARPCServer) Recv() (*HelloRequest, error) {
 	src, err := s.serverStream.RecvMsg()
 	if err != nil {
@@ -713,6 +729,10 @@ func (s *_FooServiceHelloTwoYARPCServer) RequestMeta() *transport.RequestMeta {
 	return s.serverStream.RequestMeta()
 }
 
+func (s *_FooServiceHelloTwoYARPCServer) SetResponseMeta(responseMeta *transport.ResponseMeta) {
+	s.serverStream.SetResponseMeta(responseMeta)
+}
+
 func (s *_FooServiceHelloTwoYARPCServer) Send(response *HelloResponse) error {
 	reader, closer, err := protobuf.ToReader(response, s.serverStream.RequestMeta().Encoding)
 	if closer != nil {
@@ -734,6 +754,10 @@ func (s *_FooServiceHelloThreeYARPCServer) Context() context.Context {
 
 func (s *_FooServiceHelloThreeYARPCServer) RequestMeta() *transport.RequestMeta {
 	return s.serverStream.RequestMeta()
+}
+
+func (s *_FooServiceHelloThreeYARPCServer) SetResponseMeta(responseMeta *transport.ResponseMeta) {
+	s.serverStream.SetResponseMeta(responseMeta)
 }
 
 func (s *_FooServiceHelloThreeYARPCServer) Recv() (*HelloRequest, error) {

@@ -348,6 +348,10 @@ func (c *_{{$service.GetName}}Service{{$method.GetName}}YARPCClient) RequestMeta
 	return c.stream.RequestMeta()
 }
 
+func (c *_{{$service.GetName}}Service{{$method.GetName}}YARPCClient) ResponseMeta() *transport.ResponseMeta {
+	return c.stream.ResponseMeta()
+}
+
 func (c *_{{$service.GetName}}Service{{$method.GetName}}YARPCClient) Send(request *{{$method.RequestType.GoType $packagePath}}) error {
 	reader, closer, err := protobuf.ToReader(request, c.stream.RequestMeta().Encoding)
 	if closer != nil {
@@ -392,6 +396,10 @@ func (c *_{{$service.GetName}}Service{{$method.GetName}}YARPCClient) RequestMeta
 	return c.stream.RequestMeta()
 }
 
+func (c *_{{$service.GetName}}Service{{$method.GetName}}YARPCClient) ResponseMeta() *transport.ResponseMeta {
+	return c.stream.ResponseMeta()
+}
+
 func (c *_{{$service.GetName}}Service{{$method.GetName}}YARPCClient) Recv() (*{{$method.ResponseType.GoType $packagePath}}, error) {
 	src, err := c.stream.RecvMsg()
 	if err != nil {
@@ -420,6 +428,10 @@ func (c *_{{$service.GetName}}Service{{$method.GetName}}YARPCClient) Context() c
 
 func (c *_{{$service.GetName}}Service{{$method.GetName}}YARPCClient) RequestMeta() *transport.RequestMeta {
 	return c.stream.RequestMeta()
+}
+
+func (c *_{{$service.GetName}}Service{{$method.GetName}}YARPCClient) ResponseMeta() *transport.ResponseMeta {
+	return c.stream.ResponseMeta()
 }
 
 func (c *_{{$service.GetName}}Service{{$method.GetName}}YARPCClient) Send(request *{{$method.RequestType.GoType $packagePath}}) error {
@@ -467,6 +479,10 @@ func (s *_{{$service.GetName}}Service{{$method.GetName}}YARPCServer) RequestMeta
 	return s.serverStream.RequestMeta()
 }
 
+func (s *_{{$service.GetName}}Service{{$method.GetName}}YARPCServer) SetResponseMeta(responseMeta *transport.ResponseMeta) {
+	s.serverStream.SetResponseMeta(responseMeta)
+}
+
 func (s *_{{$service.GetName}}Service{{$method.GetName}}YARPCServer) Recv() (*{{$method.RequestType.GoType $packagePath}}, error) {
 	src, err := s.serverStream.RecvMsg()
 	if err != nil {
@@ -497,6 +513,10 @@ func (s *_{{$service.GetName}}Service{{$method.GetName}}YARPCServer) RequestMeta
 	return s.serverStream.RequestMeta()
 }
 
+func (s *_{{$service.GetName}}Service{{$method.GetName}}YARPCServer) SetResponseMeta(responseMeta *transport.ResponseMeta) {
+	s.serverStream.SetResponseMeta(responseMeta)
+}
+
 func (s *_{{$service.GetName}}Service{{$method.GetName}}YARPCServer) Send(response *{{$method.ResponseType.GoType $packagePath}}) error {
 	reader, closer, err := protobuf.ToReader(response, s.serverStream.RequestMeta().Encoding)
 	if closer != nil {
@@ -520,6 +540,10 @@ func (s *_{{$service.GetName}}Service{{$method.GetName}}YARPCServer) Context() c
 
 func (s *_{{$service.GetName}}Service{{$method.GetName}}YARPCServer) RequestMeta() *transport.RequestMeta {
 	return s.serverStream.RequestMeta()
+}
+
+func (s *_{{$service.GetName}}Service{{$method.GetName}}YARPCServer) SetResponseMeta(responseMeta *transport.ResponseMeta) {
+	s.serverStream.SetResponseMeta(responseMeta)
 }
 
 func (s *_{{$service.GetName}}Service{{$method.GetName}}YARPCServer) Recv() (*{{$method.RequestType.GoType $packagePath}}, error) {
