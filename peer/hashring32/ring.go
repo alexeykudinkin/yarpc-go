@@ -143,7 +143,7 @@ func (r *ring) Remove(p peer.Peer, sub peer.Subscriber) {
 	if _, ok := r.servers[individual]; !ok {
 		return
 	}
-	toBeRemovedIndexSet := make(map[int]struct{})
+	toBeRemovedIndexSet := make(map[int]struct{}, r.replica)
 	r.removeFromServersMap(p, toBeRemovedIndexSet)
 	r.removeFromHashRing(toBeRemovedIndexSet)
 }
