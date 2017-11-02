@@ -7,6 +7,9 @@ v1.22.0-dev (unreleased)
 -   Introduces `api/peer.RetainedChooserList` with `peer/peerlist.List`, a
     building block that provides peer availability management for peer lists
     like round-robin, hash-ring.
+-   Adds a `peer/hashring32` implementation that can perform peer selection
+    based on the `req.ShardKey` and a consistent hash function over all
+    *available* peers.
 
 v1.21.0 (2017-10-26)
 --------------------
