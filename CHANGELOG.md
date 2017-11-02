@@ -10,6 +10,8 @@ v1.22.0-dev (unreleased)
 -   Adds a `peer/hashring32` implementation that can perform peer selection
     based on the `req.ShardKey` and a consistent hash function over all
     *available* peers.
+-   Adds a `peer/shortestqueue` implementation that performs peer selection,
+    sending requests to the available peer with the fewest pending requests.
 
 v1.21.0 (2017-10-26)
 --------------------
