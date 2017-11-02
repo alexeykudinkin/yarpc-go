@@ -231,32 +231,35 @@ func invokeErrorToYARPCError(err error, responseMD metadata.MD) error {
 }
 
 // CallStream implements transport.StreamOutbound#CallStream.
-func (o *Outbound) CallStream(ctx context.Context, request *transport.Request) (transport.ClientStream, error) {
+func (o *Outbound) CallStream(ctx context.Context, requestMeta *transport.RequestMeta) (transport.ClientStream, error) {
 	if err := o.once.WaitUntilRunning(ctx); err != nil {
 		return nil, err
 	}
+	start := time.Now()
 
-	return o.stream(ctx, request)
+	return o.stream(ctx, requestMeta, start)
 }
 
 func (o *Outbound) stream(
 	ctx context.Context,
-	request *transport.Request,
-) (_ transport.ClientStream, retErr error) {
-	md, err := transportRequestToMetadata(request)
+	reqMeta *transport.RequestMeta,
+	start time.Time,
+) (_ transport.ClientStream, err error) {
+	req := reqMeta.ToRequest()
+	md, err := transportRequestToMetadata(req)
 	if err != nil {
 		return nil, err
 	}
 
-	fullMethod, err := procedureNameToFullMethod(request.Procedure)
+	fullMethod, err := procedureNameToFullMethod(reqMeta.Procedure)
 	if err != nil {
 		return nil, err
 	}
 
-	apiPeer, onFinish, err := o.peerChooser.Choose(ctx, request)
+	apiPeer, onFinish, err := o.peerChooser.Choose(ctx, req)
 	defer func() {
 		if onFinish != nil {
-			onFinish(retErr)
+			onFinish(err)
 		}
 	}()
 	if err != nil {
@@ -271,6 +274,22 @@ func (o *Outbound) stream(
 		}
 	}
 
+	tracer := o.t.options.tracer
+	if tracer == nil {
+		tracer = opentracing.GlobalTracer()
+	}
+	createOpenTracingSpan := &transport.CreateOpenTracingSpan{
+		Tracer:        tracer,
+		TransportName: transportName,
+		StartTime:     start,
+	}
+	ctx, span := createOpenTracingSpan.Do(ctx, req)
+
+	if err := tracer.Inject(span.Context(), opentracing.HTTPHeaders, mdReadWriter(md)); err != nil {
+		span.Finish()
+		return nil, err
+	}
+
 	clientStream, err := grpc.NewClientStream(
 		metadata.NewOutgoingContext(ctx, md),
 		&grpc.StreamDesc{
@@ -281,7 +300,8 @@ func (o *Outbound) stream(
 		fullMethod,
 	)
 	if err != nil {
+		span.Finish()
 		return nil, err
 	}
-	return newClientStream(ctx, request, clientStream), nil
+	return newClientStream(ctx, reqMeta, clientStream, span), nil
 }
