@@ -47,6 +47,7 @@ type HelloYARPCClient interface {
 type HelloServiceHelloOutStreamYARPCClient interface {
 	Context() context.Context
 	RequestMeta() *transport.RequestMeta
+	ResponseMeta() *transport.ResponseMeta
 	Send(*HelloRequest) error
 	CloseAndRecv() (*HelloResponse, error)
 }
@@ -55,6 +56,7 @@ type HelloServiceHelloOutStreamYARPCClient interface {
 type HelloServiceHelloInStreamYARPCClient interface {
 	Context() context.Context
 	RequestMeta() *transport.RequestMeta
+	ResponseMeta() *transport.ResponseMeta
 	Recv() (*HelloResponse, error)
 }
 
@@ -62,6 +64,7 @@ type HelloServiceHelloInStreamYARPCClient interface {
 type HelloServiceHelloThereYARPCClient interface {
 	Context() context.Context
 	RequestMeta() *transport.RequestMeta
+	ResponseMeta() *transport.ResponseMeta
 	Send(*HelloRequest) error
 	Recv() (*HelloResponse, error)
 	CloseSend() error
@@ -90,6 +93,7 @@ type HelloYARPCServer interface {
 type HelloServiceHelloOutStreamYARPCServer interface {
 	Context() context.Context
 	RequestMeta() *transport.RequestMeta
+	SetResponseMeta(*transport.ResponseMeta)
 	Recv() (*HelloRequest, error)
 }
 
@@ -97,6 +101,7 @@ type HelloServiceHelloOutStreamYARPCServer interface {
 type HelloServiceHelloInStreamYARPCServer interface {
 	Context() context.Context
 	RequestMeta() *transport.RequestMeta
+	SetResponseMeta(*transport.ResponseMeta)
 	Send(*HelloResponse) error
 }
 
@@ -104,6 +109,7 @@ type HelloServiceHelloInStreamYARPCServer interface {
 type HelloServiceHelloThereYARPCServer interface {
 	Context() context.Context
 	RequestMeta() *transport.RequestMeta
+	SetResponseMeta(*transport.ResponseMeta)
 	Recv() (*HelloRequest, error)
 	Send(*HelloResponse) error
 }
@@ -287,10 +293,9 @@ func (c *_HelloServiceHelloOutStreamYARPCClient) Send(request *HelloRequest) err
 }
 
 func (c *_HelloServiceHelloOutStreamYARPCClient) CloseAndRecv() (*HelloResponse, error) {
-	if err := c.stream.Close(); err != nil { // "Close" the stream first (This is copying what's done in grpc :shrug:)
+	if err := c.stream.Close(); err != nil {
 		return nil, err
 	}
-
 	src, err := c.stream.RecvMsg()
 	if err != nil {
 		return nil, err

@@ -273,6 +273,7 @@ type FooYARPCClient interface {
 type FooServiceHelloOneYARPCClient interface {
 	Context() context.Context
 	RequestMeta() *transport.RequestMeta
+	ResponseMeta() *transport.ResponseMeta
 	Send(*HelloRequest) error
 	CloseAndRecv() (*HelloResponse, error)
 }
@@ -281,6 +282,7 @@ type FooServiceHelloOneYARPCClient interface {
 type FooServiceHelloTwoYARPCClient interface {
 	Context() context.Context
 	RequestMeta() *transport.RequestMeta
+	ResponseMeta() *transport.ResponseMeta
 	Recv() (*HelloResponse, error)
 }
 
@@ -288,6 +290,7 @@ type FooServiceHelloTwoYARPCClient interface {
 type FooServiceHelloThreeYARPCClient interface {
 	Context() context.Context
 	RequestMeta() *transport.RequestMeta
+	ResponseMeta() *transport.ResponseMeta
 	Send(*HelloRequest) error
 	Recv() (*HelloResponse, error)
 	CloseSend() error
@@ -318,6 +321,7 @@ type FooYARPCServer interface {
 type FooServiceHelloOneYARPCServer interface {
 	Context() context.Context
 	RequestMeta() *transport.RequestMeta
+	SetResponseMeta(*transport.ResponseMeta)
 	Recv() (*HelloRequest, error)
 }
 
@@ -325,6 +329,7 @@ type FooServiceHelloOneYARPCServer interface {
 type FooServiceHelloTwoYARPCServer interface {
 	Context() context.Context
 	RequestMeta() *transport.RequestMeta
+	SetResponseMeta(*transport.ResponseMeta)
 	Send(*HelloResponse) error
 }
 
@@ -332,6 +337,7 @@ type FooServiceHelloTwoYARPCServer interface {
 type FooServiceHelloThreeYARPCServer interface {
 	Context() context.Context
 	RequestMeta() *transport.RequestMeta
+	SetResponseMeta(*transport.ResponseMeta)
 	Recv() (*HelloRequest, error)
 	Send(*HelloResponse) error
 }
@@ -578,10 +584,9 @@ func (c *_FooServiceHelloOneYARPCClient) Send(request *HelloRequest) error {
 }
 
 func (c *_FooServiceHelloOneYARPCClient) CloseAndRecv() (*HelloResponse, error) {
-	if err := c.stream.Close(); err != nil { // "Close" the stream first (This is copying what's done in grpc :shrug:)
+	if err := c.stream.Close(); err != nil {
 		return nil, err
 	}
-
 	src, err := c.stream.RecvMsg()
 	if err != nil {
 		return nil, err
