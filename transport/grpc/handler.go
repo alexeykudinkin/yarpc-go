@@ -73,7 +73,7 @@ func (h *handler) handle(srv interface{}, serverStream grpc.ServerStream) error 
 	case transport.Unary:
 		return h.handleUnary(ctx, transportRequest, serverStream, streamMethod, start, handlerSpec.Unary())
 	case transport.Stream:
-		return h.handleStream(ctx, transportRequest, serverStream, handlerSpec.Stream())
+		return h.handleStream(ctx, transportRequest, serverStream, start, handlerSpec.Stream())
 	}
 	return yarpcerrors.Newf(yarpcerrors.CodeUnimplemented, "transport grpc does not handle %s handlers", handlerSpec.Type().String())
 }
@@ -123,12 +123,31 @@ func (h *handler) handleStream(
 	ctx context.Context,
 	transportRequest *transport.Request,
 	serverStream grpc.ServerStream,
+	start time.Time,
 	streamHandler transport.StreamHandler,
 ) error {
-	return transport.DispatchStreamHandler(
+	tracer := h.i.t.options.tracer
+	if tracer == nil {
+		tracer = opentracing.GlobalTracer()
+	}
+	var parentSpanCtx opentracing.SpanContext
+	md, ok := metadata.FromIncomingContext(ctx)
+	if ok {
+		parentSpanCtx, _ = tracer.Extract(opentracing.HTTPHeaders, mdReadWriter(md))
+	}
+	extractOpenTracingSpan := &transport.ExtractOpenTracingSpan{
+		ParentSpanContext: parentSpanCtx,
+		Tracer:            tracer,
+		TransportName:     transportName,
+		StartTime:         start,
+	}
+	ctx, span := extractOpenTracingSpan.Do(ctx, transportRequest)
+	defer span.Finish()
+
+	return transport.UpdateSpanWithErr(span, transport.DispatchStreamHandler(
 		streamHandler,
 		newServerStream(ctx, transportRequest.ToRequestMeta(), serverStream),
-	)
+	))
 }
 
 func (h *handler) handleUnary(
