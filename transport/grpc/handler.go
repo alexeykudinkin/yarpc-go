@@ -191,7 +191,7 @@ func (h *handler) handleUnaryBeforeErrorConversion(
 	transportRequest *transport.Request,
 	responseWriter *responseWriter,
 	start time.Time,
-    handler transport.UnaryHandler,
+	handler transport.UnaryHandler,
 ) error {
 	tracer := h.i.t.options.tracer
 	if tracer == nil {
@@ -214,7 +214,6 @@ func (h *handler) handleUnaryBeforeErrorConversion(
 	err := h.callUnary(ctx, transportRequest, handler, responseWriter)
 	return transport.UpdateSpanWithErr(span, err)
 }
-
 
 func (h *handler) callUnary(ctx context.Context, transportRequest *transport.Request, unaryHandler transport.UnaryHandler, responseWriter *responseWriter) error {
 	if err := transport.ValidateUnaryContext(ctx); err != nil {

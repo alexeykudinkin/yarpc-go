@@ -43,7 +43,7 @@ import (
 	{{range $i := .Imports}}{{if not $i.Standard}}{{$i | printf "%s\n"}}{{end}}{{end}}
 ){{end}}
 
-var _ = ioutil.NopCloser
+{{if ne (len .Services) 0}}var _ = ioutil.NopCloser{{end}}
 
 {{range $service := .Services}}
 // {{$service.GetName}}YARPCClient is the YARPC client-side interface for the {{$service.GetName}} service.

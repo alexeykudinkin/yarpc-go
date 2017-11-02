@@ -25,24 +25,24 @@ import (
 	"context"
 	"io/ioutil"
 
+	"github.com/opentracing/opentracing-go"
+	"go.uber.org/atomic"
 	"go.uber.org/yarpc/api/transport"
 	"google.golang.org/grpc"
-	"go.uber.org/atomic"
-	"github.com/opentracing/opentracing-go"
 	"google.golang.org/grpc/metadata"
 )
 
 type serverStream struct {
-	ctx    context.Context
-	reqMeta   *transport.RequestMeta
-	stream grpc.ServerStream
+	ctx     context.Context
+	reqMeta *transport.RequestMeta
+	stream  grpc.ServerStream
 }
 
 func newServerStream(ctx context.Context, reqMeta *transport.RequestMeta, stream grpc.ServerStream) *serverStream {
 	return &serverStream{
-		ctx:    ctx,
+		ctx:     ctx,
 		reqMeta: reqMeta,
-		stream: stream,
+		stream:  stream,
 	}
 }
 
@@ -69,7 +69,7 @@ func (ss *serverStream) RecvMsg() (*transport.StreamMessage, error) {
 	if err := ss.stream.RecvMsg(&msg); err != nil {
 		return nil, err
 	}
-	return &transport.StreamMessage{ioutil.NopCloser(bytes.NewReader(msg))}, nil
+	return &transport.StreamMessage{ReadCloser: ioutil.NopCloser(bytes.NewReader(msg))}, nil
 }
 
 func (ss *serverStream) SetResponseMeta(respMeta *transport.ResponseMeta) {
@@ -86,19 +86,19 @@ func (ss *serverStream) SetResponseMeta(respMeta *transport.ResponseMeta) {
 }
 
 type clientStream struct {
-	ctx    context.Context
-	reqMeta   *transport.RequestMeta
-	stream grpc.ClientStream
-	span   opentracing.Span
-	closed atomic.Bool
+	ctx     context.Context
+	reqMeta *transport.RequestMeta
+	stream  grpc.ClientStream
+	span    opentracing.Span
+	closed  atomic.Bool
 }
 
 func newClientStream(ctx context.Context, reqMeta *transport.RequestMeta, stream grpc.ClientStream, span opentracing.Span) *clientStream {
 	return &clientStream{
-		ctx:    ctx,
-		reqMeta:   reqMeta,
+		ctx:     ctx,
+		reqMeta: reqMeta,
 		stream:  stream,
-		span: span,
+		span:    span,
 	}
 }
 
@@ -134,7 +134,7 @@ func (cs *clientStream) RecvMsg() (*transport.StreamMessage, error) {
 		cs.closeWithErr(err)
 		return nil, err
 	}
-	return &transport.StreamMessage{ioutil.NopCloser(bytes.NewReader(msg))}, nil
+	return &transport.StreamMessage{ReadCloser: ioutil.NopCloser(bytes.NewReader(msg))}, nil
 }
 
 func (cs *clientStream) Close() error {
@@ -144,7 +144,8 @@ func (cs *clientStream) Close() error {
 
 func (cs *clientStream) closeWithErr(err error) {
 	if !cs.closed.Swap(true) {
-		transport.UpdateSpanWithErr(cs.span, err)
+		// TODO: check error?
+		_ = transport.UpdateSpanWithErr(cs.span, err)
 		cs.span.Finish()
 	}
 }

@@ -23,5 +23,3 @@
 // THE SOFTWARE.
 
 package testing
-
-var _ = ioutil.NopCloser
