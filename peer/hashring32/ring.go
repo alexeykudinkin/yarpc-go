@@ -22,7 +22,6 @@ package hashring32
 
 import (
 	"context"
-	"fmt"
 	"math"
 	"math/rand"
 	"sort"
@@ -31,6 +30,7 @@ import (
 
 	"go.uber.org/yarpc/api/peer"
 	"go.uber.org/yarpc/api/transport"
+	"go.uber.org/yarpc/yarpcerrors"
 )
 
 // HashFunc is the hash function used in ringpop hash ring.
@@ -40,13 +40,13 @@ type HashFunc func([]byte) uint32
 // and apply a best effort selection to relay to the correct peer.
 // When shard key not provided, a random peer would be returned.
 type ring struct {
-	serversByHash map[uint32][]peer.Peer
-	servers       map[string]peer.Peer
-	hashRing      []uint32
-	hashFunc      HashFunc
-	replica       int
-	m             sync.RWMutex
-	errNoPeer     error
+	serversByHash  map[uint32][]peer.Peer
+	servers        map[string]peer.Peer
+	hashRing       []uint32
+	hashFunc       HashFunc
+	replica        int
+	m              sync.RWMutex
+	errUnavailable error
 }
 
 type ringSubscriber struct{}
@@ -74,12 +74,12 @@ const (
 func newPeerRing(name string, hashFunc HashFunc, replica int) *ring {
 	capacity := estimatedMaxNumHosts * replica
 	return &ring{
-		serversByHash: make(map[uint32][]peer.Peer, capacity),
-		hashRing:      make([]uint32, 0, capacity),
-		servers:       make(map[string]peer.Peer, estimatedMaxNumHosts),
-		hashFunc:      hashFunc,
-		replica:       replica,
-		errNoPeer:     fmt.Errorf("%s peer list fails to find a peer", name),
+		serversByHash:  make(map[uint32][]peer.Peer, capacity),
+		hashRing:       make([]uint32, 0, capacity),
+		servers:        make(map[string]peer.Peer, estimatedMaxNumHosts),
+		hashFunc:       hashFunc,
+		replica:        replica,
+		errUnavailable: yarpcerrors.Newf(yarpcerrors.CodeUnavailable, "%s peer list fails to find a peer", name),
 	}
 }
 
@@ -88,16 +88,16 @@ func newPeerRing(name string, hashFunc HashFunc, replica int) *ring {
 // may use the hint when choosing, others might ignore it.
 //
 // A Choose on an empty population should return an error.
-func (r *ring) Choose(ctx context.Context, req *transport.Request) peer.Peer {
+func (r *ring) Choose(ctx context.Context, req *transport.Request) (peer.Peer, error) {
 	return r.choose(req.ShardKey)
 }
 
-func (r *ring) choose(shardKey string) peer.Peer {
+func (r *ring) choose(shardKey string) (peer.Peer, error) {
 	r.m.RLock()
 	defer r.m.RUnlock()
 
 	if len(r.servers) == 0 {
-		return nil
+		return nil, r.errUnavailable
 	}
 
 	var ix int
@@ -113,7 +113,7 @@ func (r *ring) choose(shardKey string) peer.Peer {
 	hash := r.hashRing[ix]
 	servers := r.serversByHash[hash]
 
-	return servers[0]
+	return servers[0], nil
 }
 
 // Add an individual to the population.

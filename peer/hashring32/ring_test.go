@@ -30,6 +30,7 @@ import (
 	"go.uber.org/yarpc/api/peer"
 	"go.uber.org/yarpc/api/transport"
 	"go.uber.org/yarpc/peer/hostport"
+	"go.uber.org/yarpc/yarpcerrors"
 	"go.uber.org/yarpc/yarpctest"
 )
 
@@ -54,7 +55,8 @@ func TestAddRemove(t *testing.T) {
 	s2 := r.Add(ringPeer1)
 	assert.Nil(t, s2, "Add returned nil on redundant peer")
 
-	p := r.Choose(context.Background(), &transport.Request{ShardKey: key1})
+	p, err := r.Choose(context.Background(), &transport.Request{ShardKey: key1})
+	assert.NoError(t, err, "Choose failed to select peer")
 	assert.NotNil(t, p, "Choose failed to select peer")
 	assert.Equal(t, ringPeer1.Identifier(), p.Identifier(), "chose the single peer")
 	assert.Equal(t, 1, r.Len(), "Size of members should be 1")
@@ -72,12 +74,15 @@ func TestMultipleChoose(t *testing.T) {
 	r.Add(ringPeer3)
 
 	assert.Equal(t, 3, r.Len(), "Size of members should be 3")
-	p := r.choose(key1)
+	p, err := r.choose(key1)
+	assert.NoError(t, err, "Choose failed to select a peer")
 	assert.NotEqual(t, "", p, "Choose failed to select a peer")
-	p2 := r.choose(key1)
+	p2, err2 := r.choose(key1)
+	assert.NoError(t, err2, "Choose failed to select a peer")
 	assert.NotEqual(t, "", p2, "Choose failed to select a peer")
 	assert.Equal(t, p, p2, "Choose selected a different peer")
-	p3 := r.choose(key1)
+	p3, err3 := r.choose(key1)
+	assert.NoError(t, err3, "Choose failed to select a peer")
 	assert.NotEqual(t, "", p3, "Choose failed to select a peer")
 	assert.Equal(t, p, p3, "Choose selected a different peer")
 
@@ -86,9 +91,11 @@ func TestMultipleChoose(t *testing.T) {
 	r.Remove(ringPeer4, s4)
 	r.Remove(ringPeer5, s5)
 
-	p4 := r.choose(key1)
+	p4, err4 := r.choose(key1)
+	assert.NoError(t, err4, "Choose failed to select a peer")
 	assert.NotEqual(t, "", p4, "Choose failed to select a peer")
-	p5 := r.choose(key1)
+	p5, err5 := r.choose(key1)
+	assert.NoError(t, err5, "Choose failed to select a peer")
 	assert.Equal(t, p, p4, "Choose selected a different peer")
 	assert.NotEqual(t, "", p5, "Choose failed to select a peer")
 	assert.Equal(t, p, p5, "Choose selected a different peer")
@@ -97,17 +104,22 @@ func TestMultipleChoose(t *testing.T) {
 func TestNoShardKey(t *testing.T) {
 	r := newTestRing()
 	r.Add(ringPeer1)
-	p := r.choose("")
+	p, err := r.choose("")
+	assert.NoError(t, err, "Choose failed to select a peer")
 	assert.NotEqual(t, "", p, "Choose failed to select a peer")
 	assert.Equal(t, ringPeer1, p, "Should returns a random individual.")
 }
 
 func TestNoPeer(t *testing.T) {
 	r := newTestRing()
-	p := r.choose("")
+	p, err := r.choose("")
+	assert.Error(t, err, "Should fail to select a peer")
+	assert.True(t, yarpcerrors.IsUnavailable(err), "Peer should be unavailable")
 	assert.Nil(t, p, "Should return nil when no peer can be selected.")
 
-	p2 := r.choose(key1)
+	p2, err2 := r.choose(key1)
+	assert.Error(t, err2, "Should fail to select a peer")
+	assert.True(t, yarpcerrors.IsUnavailable(err2), "Peer should be unavailable")
 	assert.Nil(t, p2, "Should return nil when no peer can be selected.")
 }
 
