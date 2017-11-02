@@ -26,6 +26,7 @@ package crossdockpb
 
 import (
 	"context"
+	"io/ioutil"
 	"reflect"
 
 	"github.com/gogo/protobuf/proto"

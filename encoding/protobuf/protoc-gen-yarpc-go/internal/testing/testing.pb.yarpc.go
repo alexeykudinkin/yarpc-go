@@ -26,6 +26,7 @@ package testing
 
 import (
 	"context"
+	"io/ioutil"
 	"reflect"
 
 	"github.com/gogo/protobuf/proto"
@@ -323,7 +324,7 @@ type FooServiceHelloOneYARPCServer interface {
 // FooServiceHelloTwoYARPCServer sends HelloResponses.
 type FooServiceHelloTwoYARPCServer interface {
 	Context() context.Context
-	RequestMeta() *transport.Request
+	RequestMeta() *transport.RequestMeta
 	Send(*HelloResponse) error
 }
 
@@ -449,7 +450,7 @@ func (c *_FooYARPCCaller) HelloTwo(ctx context.Context, request *HelloRequest, o
 	if err != nil {
 		return nil, err
 	}
-	reader, closer, err := protobuf.ToReader(request, stream.Request().Encoding)
+	reader, closer, err := protobuf.ToReader(request, stream.RequestMeta().Encoding)
 	if closer != nil {
 		defer closer()
 	}
@@ -523,7 +524,7 @@ func (h *_FooYARPCHandler) HelloOne(serverStream transport.ServerStream) error {
 	if err != nil {
 		return err
 	}
-	reader, closer, err := protobuf.ToReader(response, serverStream.Request().Encoding)
+	reader, closer, err := protobuf.ToReader(response, serverStream.RequestMeta().Encoding)
 	if closer != nil {
 		defer closer()
 	}
@@ -538,7 +539,7 @@ func (h *_FooYARPCHandler) HelloTwo(serverStream transport.ServerStream) error {
 	if err != nil {
 		return err
 	}
-	requestMessage, err := protobuf.ToProtoMessage(src, serverStream.Request().Encoding, newFooServiceHelloTwoYARPCRequest)
+	requestMessage, err := protobuf.ToProtoMessage(src, serverStream.RequestMeta().Encoding, newFooServiceHelloTwoYARPCRequest)
 	if requestMessage == nil {
 		return err
 	}
@@ -561,12 +562,12 @@ func (c *_FooServiceHelloOneYARPCClient) Context() context.Context {
 	return c.stream.Context()
 }
 
-func (c *_FooServiceHelloOneYARPCClient) Request() *transport.Request {
-	return c.stream.Request()
+func (c *_FooServiceHelloOneYARPCClient) RequestMeta() *transport.RequestMeta {
+	return c.stream.RequestMeta()
 }
 
 func (c *_FooServiceHelloOneYARPCClient) Send(request *HelloRequest) error {
-	reader, closer, err := protobuf.ToReader(request, c.stream.Request().Encoding)
+	reader, closer, err := protobuf.ToReader(request, c.stream.RequestMeta().Encoding)
 	if closer != nil {
 		defer closer()
 	}
@@ -585,7 +586,7 @@ func (c *_FooServiceHelloOneYARPCClient) CloseAndRecv() (*HelloResponse, error) 
 	if err != nil {
 		return nil, err
 	}
-	responseMessage, err := protobuf.ToProtoMessage(src, c.stream.Request().Encoding, newFooServiceHelloOneYARPCResponse)
+	responseMessage, err := protobuf.ToProtoMessage(src, c.stream.RequestMeta().Encoding, newFooServiceHelloOneYARPCResponse)
 	if responseMessage == nil {
 		return nil, err
 	}
@@ -604,8 +605,8 @@ func (c *_FooServiceHelloTwoYARPCClient) Context() context.Context {
 	return c.stream.Context()
 }
 
-func (c *_FooServiceHelloTwoYARPCClient) Request() *transport.Request {
-	return c.stream.Request()
+func (c *_FooServiceHelloTwoYARPCClient) RequestMeta() *transport.RequestMeta {
+	return c.stream.RequestMeta()
 }
 
 func (c *_FooServiceHelloTwoYARPCClient) Recv() (*HelloResponse, error) {
@@ -613,7 +614,7 @@ func (c *_FooServiceHelloTwoYARPCClient) Recv() (*HelloResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	responseMessage, err := protobuf.ToProtoMessage(src, c.stream.Request().Encoding, newFooServiceHelloTwoYARPCResponse)
+	responseMessage, err := protobuf.ToProtoMessage(src, c.stream.RequestMeta().Encoding, newFooServiceHelloTwoYARPCResponse)
 	if responseMessage == nil {
 		return nil, err
 	}
@@ -632,12 +633,12 @@ func (c *_FooServiceHelloThreeYARPCClient) Context() context.Context {
 	return c.stream.Context()
 }
 
-func (c *_FooServiceHelloThreeYARPCClient) Request() *transport.Request {
-	return c.stream.Request()
+func (c *_FooServiceHelloThreeYARPCClient) RequestMeta() *transport.RequestMeta {
+	return c.stream.RequestMeta()
 }
 
 func (c *_FooServiceHelloThreeYARPCClient) Send(request *HelloRequest) error {
-	reader, closer, err := protobuf.ToReader(request, c.stream.Request().Encoding)
+	reader, closer, err := protobuf.ToReader(request, c.stream.RequestMeta().Encoding)
 	if closer != nil {
 		defer closer()
 	}
@@ -652,7 +653,7 @@ func (c *_FooServiceHelloThreeYARPCClient) Recv() (*HelloResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	responseMessage, err := protobuf.ToProtoMessage(src, c.stream.Request().Encoding, newFooServiceHelloThreeYARPCResponse)
+	responseMessage, err := protobuf.ToProtoMessage(src, c.stream.RequestMeta().Encoding, newFooServiceHelloThreeYARPCResponse)
 	if responseMessage == nil {
 		return nil, err
 	}
@@ -675,8 +676,8 @@ func (s *_FooServiceHelloOneYARPCServer) Context() context.Context {
 	return s.serverStream.Context()
 }
 
-func (s *_FooServiceHelloOneYARPCServer) Request() *transport.Request {
-	return s.serverStream.Request()
+func (s *_FooServiceHelloOneYARPCServer) RequestMeta() *transport.RequestMeta {
+	return s.serverStream.RequestMeta()
 }
 
 func (s *_FooServiceHelloOneYARPCServer) Recv() (*HelloRequest, error) {
@@ -684,7 +685,7 @@ func (s *_FooServiceHelloOneYARPCServer) Recv() (*HelloRequest, error) {
 	if err != nil {
 		return nil, err
 	}
-	responseMessage, err := protobuf.ToProtoMessage(src, s.serverStream.Request().Encoding, newFooServiceHelloOneYARPCRequest)
+	responseMessage, err := protobuf.ToProtoMessage(src, s.serverStream.RequestMeta().Encoding, newFooServiceHelloOneYARPCRequest)
 	if responseMessage == nil {
 		return nil, err
 	}
@@ -703,12 +704,12 @@ func (s *_FooServiceHelloTwoYARPCServer) Context() context.Context {
 	return s.serverStream.Context()
 }
 
-func (s *_FooServiceHelloTwoYARPCServer) Request() *transport.Request {
-	return s.serverStream.Request()
+func (s *_FooServiceHelloTwoYARPCServer) RequestMeta() *transport.RequestMeta {
+	return s.serverStream.RequestMeta()
 }
 
 func (s *_FooServiceHelloTwoYARPCServer) Send(response *HelloResponse) error {
-	reader, closer, err := protobuf.ToReader(response, s.serverStream.Request().Encoding)
+	reader, closer, err := protobuf.ToReader(response, s.serverStream.RequestMeta().Encoding)
 	if closer != nil {
 		defer closer()
 	}
@@ -726,8 +727,8 @@ func (s *_FooServiceHelloThreeYARPCServer) Context() context.Context {
 	return s.serverStream.Context()
 }
 
-func (s *_FooServiceHelloThreeYARPCServer) Request() *transport.Request {
-	return s.serverStream.Request()
+func (s *_FooServiceHelloThreeYARPCServer) RequestMeta() *transport.RequestMeta {
+	return s.serverStream.RequestMeta()
 }
 
 func (s *_FooServiceHelloThreeYARPCServer) Recv() (*HelloRequest, error) {
@@ -735,7 +736,7 @@ func (s *_FooServiceHelloThreeYARPCServer) Recv() (*HelloRequest, error) {
 	if err != nil {
 		return nil, err
 	}
-	responseMessage, err := protobuf.ToProtoMessage(src, s.serverStream.Request().Encoding, newFooServiceHelloThreeYARPCRequest)
+	responseMessage, err := protobuf.ToProtoMessage(src, s.serverStream.RequestMeta().Encoding, newFooServiceHelloThreeYARPCRequest)
 	if responseMessage == nil {
 		return nil, err
 	}
@@ -747,7 +748,7 @@ func (s *_FooServiceHelloThreeYARPCServer) Recv() (*HelloRequest, error) {
 }
 
 func (s *_FooServiceHelloThreeYARPCServer) Send(response *HelloResponse) error {
-	reader, closer, err := protobuf.ToReader(response, s.serverStream.Request().Encoding)
+	reader, closer, err := protobuf.ToReader(response, s.serverStream.RequestMeta().Encoding)
 	if closer != nil {
 		defer closer()
 	}

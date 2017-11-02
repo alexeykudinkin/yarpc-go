@@ -59,6 +59,7 @@ type {{$service.GetName}}YARPCClient interface {
 type {{$service.GetName}}Service{{$method.GetName}}YARPCClient interface {
 	Context() context.Context
 	RequestMeta() *transport.RequestMeta
+	ResponseMeta() *transport.ResponseMeta
 	Send(*{{$method.RequestType.GoType $packagePath}}) error
 	CloseAndRecv() (*{{$method.ResponseType.GoType $packagePath}}, error)
 }
@@ -69,6 +70,7 @@ type {{$service.GetName}}Service{{$method.GetName}}YARPCClient interface {
 type {{$service.GetName}}Service{{$method.GetName}}YARPCClient interface {
 	Context() context.Context
 	RequestMeta() *transport.RequestMeta
+	ResponseMeta() *transport.ResponseMeta
 	Recv() (*{{$method.ResponseType.GoType $packagePath}}, error)
 }
 {{end}}
@@ -78,6 +80,7 @@ type {{$service.GetName}}Service{{$method.GetName}}YARPCClient interface {
 type {{$service.GetName}}Service{{$method.GetName}}YARPCClient interface {
 	Context() context.Context
 	RequestMeta() *transport.RequestMeta
+	ResponseMeta() *transport.ResponseMeta
 	Send(*{{$method.RequestType.GoType $packagePath}}) error
 	Recv() (*{{$method.ResponseType.GoType $packagePath}}, error)
 	CloseSend() error
@@ -110,6 +113,7 @@ type {{$service.GetName}}YARPCServer interface {
 type {{$service.GetName}}Service{{$method.GetName}}YARPCServer interface {
 	Context() context.Context
 	RequestMeta() *transport.RequestMeta
+	SetResponseMeta(*transport.ResponseMeta)
 	Recv() (*{{$method.RequestType.GoType $packagePath}}, error)
 }
 {{end}}
@@ -118,7 +122,8 @@ type {{$service.GetName}}Service{{$method.GetName}}YARPCServer interface {
 // {{$service.GetName}}Service{{$method.GetName}}YARPCServer sends {{$method.ResponseType.GoType $packagePath}}s.
 type {{$service.GetName}}Service{{$method.GetName}}YARPCServer interface {
 	Context() context.Context
-	RequestMeta() *transport.Request
+	RequestMeta() *transport.RequestMeta
+	SetResponseMeta(*transport.ResponseMeta)
 	Send(*{{$method.ResponseType.GoType $packagePath}}) error
 }
 {{end}}
@@ -128,6 +133,7 @@ type {{$service.GetName}}Service{{$method.GetName}}YARPCServer interface {
 type {{$service.GetName}}Service{{$method.GetName}}YARPCServer interface {
 	Context() context.Context
 	RequestMeta() *transport.RequestMeta
+	SetResponseMeta(*transport.ResponseMeta)
 	Recv() (*{{$method.RequestType.GoType $packagePath}}, error)
 	Send(*{{$method.ResponseType.GoType $packagePath}}) error
 }
@@ -233,7 +239,7 @@ func (c *_{{$service.GetName}}YARPCCaller) {{$method.GetName}}(ctx context.Conte
 	if err != nil {
 		return nil, err
 	}
-	reader, closer, err := protobuf.ToReader(request, stream.Request().Encoding)
+	reader, closer, err := protobuf.ToReader(request, stream.RequestMeta().Encoding)
 	if closer != nil {
 		defer closer()
 	}
@@ -296,7 +302,7 @@ func (h *_{{$service.GetName}}YARPCHandler) {{$method.GetName}}(serverStream tra
 	if err != nil {
 		return err
 	}
-	reader, closer, err := protobuf.ToReader(response, serverStream.Request().Encoding)
+	reader, closer, err := protobuf.ToReader(response, serverStream.RequestMeta().Encoding)
 	if closer != nil {
 		defer closer()
 	}
@@ -312,7 +318,7 @@ func (h *_{{$service.GetName}}YARPCHandler) {{$method.GetName}}(serverStream tra
 	if err != nil {
 		return err
 	}
-    requestMessage, err := protobuf.ToProtoMessage(src, serverStream.Request().Encoding, new{{$service.GetName}}Service{{$method.GetName}}YARPCRequest)
+    requestMessage, err := protobuf.ToProtoMessage(src, serverStream.RequestMeta().Encoding, new{{$service.GetName}}Service{{$method.GetName}}YARPCRequest)
 	if requestMessage == nil {
 		return err
 	}
@@ -354,10 +360,9 @@ func (c *_{{$service.GetName}}Service{{$method.GetName}}YARPCClient) Send(reques
 }
 
 func (c *_{{$service.GetName}}Service{{$method.GetName}}YARPCClient) CloseAndRecv() (*{{$method.ResponseType.GoType $packagePath}}, error) {
-	if err := c.stream.Close(); err != nil { // "Close" the stream first (This is copying what's done in grpc :shrug:)
+	if err := c.stream.Close(); err != nil {
 		return nil, err
 	}
-
 	src, err := c.stream.RecvMsg()
 	if err != nil {
 		return nil, err
@@ -583,6 +588,7 @@ var Runner = protoplugin.NewRunner(
 	checkTemplateInfo,
 	[]string{
 		"context",
+		"io/ioutil",
 		"reflect",
 		"github.com/gogo/protobuf/proto",
 		"go.uber.org/yarpc",
