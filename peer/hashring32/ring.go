@@ -356,3 +356,15 @@ func indexOf(slice []uint32, v uint32) int {
 	}
 	return index
 }
+
+func (r *ring) Start() error {
+	return nil
+}
+
+func (r *ring) Stop() error {
+	return nil
+}
+
+func (r *ring) IsRunning() bool {
+	return true
+}
